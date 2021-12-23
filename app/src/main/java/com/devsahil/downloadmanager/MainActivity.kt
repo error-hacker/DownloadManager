@@ -1,38 +1,41 @@
 package com.devsahil.downloadmanager
 
 import android.annotation.SuppressLint
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import com.devsahil.downloadmanager.databinding.ActivityMainBinding
 import android.app.DownloadManager
+import android.database.Cursor
 import android.net.Uri
-import android.os.Build
-import androidx.annotation.RequiresApi
+import android.os.Bundle
+import android.os.Environment
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import java.io.File
+import com.devsahil.downloadmanager.databinding.ActivityMainBinding
 import java.util.*
 import kotlin.collections.ArrayList
-import androidx.browser.customtabs.CustomTabsIntent
-import com.google.firebase.firestore.util.Util
-import android.widget.Toast
-
 import android.content.Intent
+import android.content.ActivityNotFoundException
 
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.IntentFilter
-import android.database.Cursor
+import android.content.ClipData.newIntent
 
 
-class MainActivity : AppCompatActivity(), DownloadImageViewClicked {
 
-    lateinit var binding: ActivityMainBinding
+
+
+
+
+
+class MainActivity() : AppCompatActivity(), ButtonFunctions {
+
+    private lateinit var binding: ActivityMainBinding
     private var downloadID: Long = 0
+    private val storagePath: String? = Environment.DIRECTORY_DOWNLOADS //+ "/Krishi Reports"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+
 
         binding.reportsRecyclerView.layoutManager = LinearLayoutManager(this)
         val items = fetchData()
@@ -44,27 +47,43 @@ class MainActivity : AppCompatActivity(), DownloadImageViewClicked {
 
     private fun fetchData(): ArrayList<String> {
         val list = ArrayList<String>()
-        list.add("http://www.africau.edu/images/default/sample.pdf")
+        list.add("https://www.clickdimensions.com/links/TestPDFfile.pdf")
         list.add("https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf")
-        list.add("http://www.wright.edu/~david.wilson/eng3000/samplereport.pdf")
+        list.add("https://file-examples-com.github.io/uploads/2017/10/file-example_PDF_1MB.pdf")
         list.add("https://www.vu.edu.au/sites/default/files/campuses-services/pdfs/sample-research-report.pdf")
+        list.add("https://file-examples-com.github.io/uploads/2017/10/file-sample_150kB.pdf")
+
 
         return list
     }
 
     @SuppressLint("Range")
-    override fun onButtonClicked(url: String, fileName: String) {
+    override fun onDownloadButtonClicked(url: String, fileName: String) {
 
 
-        val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
 
-        val request = DownloadManager.Request(Uri.parse(url))
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE) // Visibility of the download Notification
-            .setTitle(fileName) // Title of the Download Notification
-            .setDescription("Downloading") // Description of the Download Notification
-            .setDestinationInExternalPublicDir("/Krishi Reports",fileName);
+        if(FileFuns().checkFileExists(storagePath, fileName)) {
+            Toast.makeText(applicationContext, "File Already Exists", Toast.LENGTH_LONG).show()
 
-        downloadID = downloadManager.enqueue(request)
+        } else {
+            val downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+
+            val request = DownloadManager.Request(Uri.parse(url))
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE) // Visibility of the download Notification
+                .setTitle(fileName) // Title of the Download Notification
+                .setDestinationInExternalPublicDir(storagePath, fileName)
+                //.setDescription("Downloading") // Description of the Download Notification
+
+
+            downloadID = downloadManager.enqueue(request)
+
+            downloadStatus(downloadID, downloadManager)
+
+        }
+    }
+
+    @SuppressLint("Range")
+    private fun downloadStatus(downloadID: Long, downloadManager: DownloadManager) {
 
         var finishDownload = false
         var progress: Int
@@ -77,7 +96,7 @@ class MainActivity : AppCompatActivity(), DownloadImageViewClicked {
                 when (status) {
                     DownloadManager.STATUS_FAILED -> {
                         finishDownload = true
-                        Toast.makeText(this@MainActivity, "Download Failed", Toast.LENGTH_SHORT)
+                        Toast.makeText(this, "Download Failed", Toast.LENGTH_SHORT)
                             .show()
                     }
                     DownloadManager.STATUS_PAUSED -> {}
@@ -99,10 +118,24 @@ class MainActivity : AppCompatActivity(), DownloadImageViewClicked {
                         // if you use aysnc task
                         // publishProgress(100);
                         finishDownload = true
-                        Toast.makeText(this@MainActivity, "Download Completed", Toast.LENGTH_SHORT)
+                        Toast.makeText(this,
+                            "Download Completed",
+                            Toast.LENGTH_SHORT)
                             .show()
                     }
                 }
+            }
+        }
+    }
+
+    override fun onOpenButtonClicked(fileName: String) {
+        if(FileFuns().checkFileExists(storagePath, fileName)) {
+            val intent = FileFuns().openPDF(storagePath,fileName)
+            try {
+                this.startActivity(Intent.createChooser(intent, "Open file with"))
+            } catch (e: ActivityNotFoundException) {
+                Toast.makeText(this, "No handler for this type of file.", Toast.LENGTH_LONG)
+                    .show()
             }
         }
     }

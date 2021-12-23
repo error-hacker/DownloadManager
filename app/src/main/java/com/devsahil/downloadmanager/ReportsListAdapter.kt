@@ -8,11 +8,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import java.net.MalformedURLException
 import java.net.URL
-import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.min
 
-class ReportsListAdapter(private val items: ArrayList<String>, private val listener: DownloadImageViewClicked) : RecyclerView.Adapter<ReportsViewHolder>() {
+class ReportsListAdapter(private val items: ArrayList<String>, private val listener: ButtonFunctions) : RecyclerView.Adapter<ReportsViewHolder>() {
 
 
 
@@ -22,7 +20,11 @@ class ReportsListAdapter(private val items: ArrayList<String>, private val liste
 
         val downloadImageView : ImageView = view.findViewById(R.id.downloadImageView)
         downloadImageView.setOnClickListener{
-            listener.onButtonClicked(items[viewHolder.adapterPosition],getFileNameFromURL(items[viewHolder.adapterPosition]))
+            listener.onDownloadButtonClicked(items[viewHolder.adapterPosition],getFileNameFromURL(items[viewHolder.adapterPosition]))
+        }
+        val openImageView : ImageView = view.findViewById(R.id.openImageView)
+        openImageView.setOnClickListener{
+            listener.onOpenButtonClicked(getFileNameFromURL(items[viewHolder.adapterPosition]))
         }
 
         return viewHolder
@@ -72,8 +74,10 @@ class ReportsListAdapter(private val items: ArrayList<String>, private val liste
     }
 }
 
-interface DownloadImageViewClicked {
-    fun onButtonClicked(url: String, fileName: String)
+interface ButtonFunctions {
+
+    fun onDownloadButtonClicked(url: String, fileName: String)
+    fun onOpenButtonClicked(fileName: String)
 }
 
 class ReportsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
