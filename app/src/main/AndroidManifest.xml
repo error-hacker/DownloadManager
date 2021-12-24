@@ -20,14 +20,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DownloadManager">
         <provider
-            android:name="android.core.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                andro
-                id:resource="@xml/provider_paths"/>
+                android:resource="@xml/provider_paths"/>
         </provider>
 
         <activity

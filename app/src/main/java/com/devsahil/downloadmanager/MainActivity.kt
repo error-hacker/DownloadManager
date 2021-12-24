@@ -10,18 +10,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.devsahil.downloadmanager.databinding.ActivityMainBinding
-import java.util.*
-import kotlin.collections.ArrayList
-import android.content.Intent
-import android.content.ActivityNotFoundException
-
-import android.content.ClipData.newIntent
-
-
-
-
-
-
 
 
 class MainActivity() : AppCompatActivity(), ButtonFunctions {
@@ -34,7 +22,6 @@ class MainActivity() : AppCompatActivity(), ButtonFunctions {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
 
 
         binding.reportsRecyclerView.layoutManager = LinearLayoutManager(this)
@@ -57,10 +44,7 @@ class MainActivity() : AppCompatActivity(), ButtonFunctions {
         return list
     }
 
-    @SuppressLint("Range")
     override fun onDownloadButtonClicked(url: String, fileName: String) {
-
-
 
         if(FileFuns().checkFileExists(storagePath, fileName)) {
             Toast.makeText(applicationContext, "File Already Exists", Toast.LENGTH_LONG).show()
@@ -130,13 +114,11 @@ class MainActivity() : AppCompatActivity(), ButtonFunctions {
 
     override fun onOpenButtonClicked(fileName: String) {
         if(FileFuns().checkFileExists(storagePath, fileName)) {
-            val intent = FileFuns().openPDF(storagePath,fileName)
-            try {
-                this.startActivity(Intent.createChooser(intent, "Open file with"))
-            } catch (e: ActivityNotFoundException) {
-                Toast.makeText(this, "No handler for this type of file.", Toast.LENGTH_LONG)
-                    .show()
-            }
+            FileFuns().openPDF(storagePath,fileName, this)
+        }
+        else{
+            Toast.makeText(this, "Report not downloaded", Toast.LENGTH_LONG)
+                .show()
         }
     }
 }
